@@ -1,0 +1,104 @@
+Date: 2026-04-14
+Game ID: 823478
+Matchup: Chicago Cubs at Philadelphia Phillies
+Predicted winner: Philadelphia Phillies
+Confidence: High
+Probability label: Very Likely
+
+Date: 2026-04-14
+Game ID: 824292
+Matchup: Kansas City Royals at Detroit Tigers
+Predicted winner: Kansas City Royals
+Confidence: Medium
+Probability label: Likely
+
+Date: 2026-04-14
+Game ID: 824531
+Matchup: San Francisco Giants at Cincinnati Reds
+Predicted winner: Cincinnati Reds
+Confidence: Medium
+Probability label: Likely
+
+Date: 2026-04-14
+Game ID: 823802
+Matchup: Toronto Blue Jays at Milwaukee Brewers
+Predicted winner: Toronto Blue Jays
+Confidence: Medium
+Probability label: Likely
+
+Date: 2026-04-14
+Game ID: 824935
+Matchup: Miami Marlins at Atlanta Braves
+Predicted winner: Miami Marlins
+Confidence: Medium
+Probability label: Likely
+
+Date: 2026-04-14
+Game ID: 823315
+Matchup: Seattle Mariners at San Diego Padres
+Predicted winner: San Diego Padres
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 823072
+Matchup: Cleveland Guardians at St. Louis Cardinals
+Predicted winner: St. Louis Cardinals
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 823965
+Matchup: New York Mets at Los Angeles Dodgers
+Predicted winner: Los Angeles Dodgers
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 823562
+Matchup: Los Angeles Angels at New York Yankees
+Predicted winner: New York Yankees
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 824616
+Matchup: Tampa Bay Rays at Chicago White Sox
+Predicted winner: Tampa Bay Rays
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 824853
+Matchup: Arizona Diamondbacks at Baltimore Orioles
+Predicted winner: Baltimore Orioles
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 823398
+Matchup: Washington Nationals at Pittsburgh Pirates
+Predicted winner: Washington Nationals
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 824210
+Matchup: Colorado Rockies at Houston Astros
+Predicted winner: Houston Astros
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 823723
+Matchup: Boston Red Sox at Minnesota Twins
+Predicted winner: Boston Red Sox
+Confidence: Low
+Probability label: Lean
+
+Date: 2026-04-14
+Game ID: 825022
+Matchup: Texas Rangers at Athletics
+Predicted winner: Texas Rangers
+Confidence: Low
+Probability label: Toss-Up

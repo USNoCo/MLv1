@@ -1,0 +1,89 @@
+Date: 2026-04-14
+Game ID: 823072
+Matchup: Cleveland Guardians at St. Louis Cardinals
+Predicted winner: away_team
+Home win probability: 0.400
+
+Date: 2026-04-14
+Game ID: 823315
+Matchup: Seattle Mariners at San Diego Padres
+Predicted winner: home_team
+Home win probability: 0.710
+
+Date: 2026-04-14
+Game ID: 823398
+Matchup: Washington Nationals at Pittsburgh Pirates
+Predicted winner: home_team
+Home win probability: 0.678
+
+Date: 2026-04-14
+Game ID: 823478
+Matchup: Chicago Cubs at Philadelphia Phillies
+Predicted winner: home_team
+Home win probability: 0.733
+
+Date: 2026-04-14
+Game ID: 823562
+Matchup: Los Angeles Angels at New York Yankees
+Predicted winner: home_team
+Home win probability: 0.649
+
+Date: 2026-04-14
+Game ID: 823723
+Matchup: Boston Red Sox at Minnesota Twins
+Predicted winner: home_team
+Home win probability: 0.645
+
+Date: 2026-04-14
+Game ID: 823802
+Matchup: Toronto Blue Jays at Milwaukee Brewers
+Predicted winner: away_team
+Home win probability: 0.495
+
+Date: 2026-04-14
+Game ID: 823965
+Matchup: New York Mets at Los Angeles Dodgers
+Predicted winner: away_team
+Home win probability: 0.363
+
+Date: 2026-04-14
+Game ID: 824210
+Matchup: Colorado Rockies at Houston Astros
+Predicted winner: home_team
+Home win probability: 0.780
+
+Date: 2026-04-14
+Game ID: 824292
+Matchup: Kansas City Royals at Detroit Tigers
+Predicted winner: away_team
+Home win probability: 0.156
+
+Date: 2026-04-14
+Game ID: 824531
+Matchup: San Francisco Giants at Cincinnati Reds
+Predicted winner: home_team
+Home win probability: 0.692
+
+Date: 2026-04-14
+Game ID: 824616
+Matchup: Tampa Bay Rays at Chicago White Sox
+Predicted winner: away_team
+Home win probability: 0.243
+
+Date: 2026-04-14
+Game ID: 824853
+Matchup: Arizona Diamondbacks at Baltimore Orioles
+Predicted winner: home_team
+Home win probability: 0.542
+
+Date: 2026-04-14
+Game ID: 824935
+Matchup: Miami Marlins at Atlanta Braves
+Predicted winner: away_team
+Home win probability: 0.477
+
+Date: 2026-04-14
+Game ID: 825022
+Matchup: Texas Rangers at Athletics
+Predicted winner: away_team
+Home win probability: 0.370
