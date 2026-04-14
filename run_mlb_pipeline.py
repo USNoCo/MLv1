@@ -7,7 +7,7 @@ import pandas as pd
 
 from build_daily_features import slugify
 from mlb_daily import DATA_DIR, build_daily_prediction_rows, build_training_rows, write_rows_to_csv
-from predict import DEFAULT_REPORT_PATH, predict_dataframe
+from predict import DEFAULT_REPORT_PATH, build_text_report, print_console_summary, predict_dataframe
 from train import build_pipeline, load_dataset, save_model
 
 
@@ -38,19 +38,25 @@ def main() -> None:
     target_year = date.fromisoformat(target_date).year
     previous_year = target_year - 1
 
+    print("MLB Prediction Pipeline")
+    print("-----------------------")
+    print(f"Target date: {target_date}")
+    print("")
+
     training_rows = []
     training_rows.extend(build_training_rows(previous_year))
     training_rows.extend(build_training_rows(target_year, before_date=target_date))
 
     training_dataset_path = DATA_DIR / f"mlb_training_through_{target_date}.csv"
     write_rows_to_csv(training_rows, training_dataset_path)
-    print(f"Saved combined training data to: {training_dataset_path}")
+    print(f"Training dataset: {training_dataset_path}")
+    print(f"Training rows: {len(training_rows)}")
 
     df, feature_columns = load_dataset(training_dataset_path)
     pipeline = build_pipeline()
     pipeline.fit(df[feature_columns], df["home_win"])
     save_model(pipeline, feature_columns, training_dataset_path)
-    print(f"Fitted production model on {len(df)} historical rows through {target_date}.")
+    print(f"Model fit complete using {len(df)} historical games through {target_date}.")
 
     prediction_rows = build_daily_prediction_rows(target_date, season=target_year)
     prediction_csv_path = DATA_DIR / f"daily_features_{target_date}.csv"
@@ -64,33 +70,15 @@ def main() -> None:
         )
         with (prediction_json_dir / filename).open("w", encoding="utf-8") as handle:
             json.dump(row, handle, indent=2)
-    print(f"Saved scheduled-game features to: {prediction_csv_path}")
+    print(f"Daily feature file: {prediction_csv_path}")
+    print(f"Scheduled games: {len(prediction_rows)}")
 
     prediction_df = pd.DataFrame(prediction_rows)
     predictions = predict_dataframe(prediction_df, feature_columns, pipeline)
+    args.output_report.write_text(build_text_report(predictions) + "\n", encoding="utf-8")
 
-    lines: list[str] = []
-    for _, row in predictions.iterrows():
-        lines.append(f"Date: {row.get('official_date', '')}")
-        lines.append(f"Game ID: {row.get('game_pk', '')}")
-        lines.append(f"Matchup: {row.get('away_team_name', 'Away Team')} at {row.get('home_team_name', 'Home Team')}")
-        lines.append(f"Predicted winner: {row['predicted_winner']}")
-        lines.append(f"Confidence: {row['confidence_label']}")
-        lines.append(f"Probability label: {row['probability_label']}")
-        lines.append("")
-    args.output_report.write_text("\n".join(lines).strip() + "\n", encoding="utf-8")
-
-    display_columns = [
-        "official_date",
-        "game_pk",
-        "away_team_name",
-        "home_team_name",
-        "predicted_winner",
-        "confidence_label",
-        "probability_label",
-    ]
-    print(predictions[display_columns].to_string(index=False))
-    print(f"\nSaved report to: {args.output_report}")
+    print("")
+    print_console_summary(predictions, args.output_report)
 
 
 if __name__ == "__main__":

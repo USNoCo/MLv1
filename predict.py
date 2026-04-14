@@ -1,14 +1,17 @@
 import argparse
 import json
+from datetime import datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 import joblib
 import pandas as pd
 
 
 MODEL_PATH = Path("artifacts/mlb_game_winner_model.joblib")
-METADATA_COLUMNS = ["official_date", "game_pk", "away_team_name", "home_team_name"]
+METADATA_COLUMNS = ["official_date", "game_datetime", "game_pk", "away_team_name", "home_team_name"]
 DEFAULT_REPORT_PATH = Path("mlbResults.txt")
+LOCAL_TIMEZONE = ZoneInfo("America/New_York")
 
 
 def parse_args() -> argparse.Namespace:
@@ -77,32 +80,81 @@ def probability_label(score: float) -> str:
     return "Toss-Up"
 
 
+def build_matchup_label(row: pd.Series) -> str:
+    return f"{row.get('away_team_name', 'Away Team')} at {row.get('home_team_name', 'Home Team')}"
+
+
+def format_start_line(row: pd.Series) -> str:
+    game_datetime = row.get("game_datetime")
+    if isinstance(game_datetime, str) and game_datetime:
+        dt = datetime.fromisoformat(game_datetime.replace("Z", "+00:00")).astimezone(LOCAL_TIMEZONE)
+        return dt.strftime("%I:%M %p ET")
+    return ""
+
+
+def build_report_lines(predictions: pd.DataFrame) -> list[str]:
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    lines = [
+        "MLB Daily Prediction Report",
+        f"Generated: {generated_at}",
+        f"Games: {len(predictions)}",
+        "",
+    ]
+
+    for index, (_, row) in enumerate(predictions.iterrows(), start=1):
+        lines.append(f"{index}. {build_matchup_label(row)}")
+        lines.append(f"   Start Time: {format_start_line(row)}")
+        lines.append(f"   Selection: {row['predicted_winner']}")
+        lines.append(f"   Confidence Tier: {row['confidence_label']}")
+        lines.append(f"   Confidence Outlook: {row['probability_label']}")
+        lines.append("")
+
+    return lines
+
+
 def build_text_report(predictions: pd.DataFrame) -> str:
-    lines: list[str] = []
+    return "\n".join(build_report_lines(predictions)).strip()
+
+
+def print_console_summary(predictions: pd.DataFrame, report_path: Path) -> None:
+    print("MLB Daily Predictions")
+    print("---------------------")
 
     if len(predictions) == 1:
         row = predictions.iloc[0]
-        if "official_date" in row:
-            lines.append(f"Date: {row['official_date']}")
-        if "game_pk" in row:
-            lines.append(f"Game ID: {row['game_pk']}")
-        if "away_team_name" in row and "home_team_name" in row:
-            lines.append(f"Matchup: {row['away_team_name']} at {row['home_team_name']}")
-        lines.append(f"Predicted winner: {row['predicted_winner']}")
-        lines.append(f"Confidence: {row['confidence_label']}")
-        lines.append(f"Probability label: {row['probability_label']}")
-        return "\n".join(lines)
+        print(f"Matchup: {build_matchup_label(row)}")
+        print(f"Selection: {row['predicted_winner']}")
+        print(f"Confidence Tier: {row['confidence_label']}")
+        print(f"Confidence Outlook: {row['probability_label']}")
+        print(f"Report: {report_path}")
+        return
 
-    for _, row in predictions.iterrows():
-        lines.append(f"Date: {row.get('official_date', '')}")
-        lines.append(f"Game ID: {row.get('game_pk', '')}")
-        lines.append(f"Matchup: {row.get('away_team_name', 'Away Team')} at {row.get('home_team_name', 'Home Team')}")
-        lines.append(f"Predicted winner: {row['predicted_winner']}")
-        lines.append(f"Confidence: {row['confidence_label']}")
-        lines.append(f"Probability label: {row['probability_label']}")
-        lines.append("")
-
-    return "\n".join(lines).strip()
+    display_columns = [
+        "official_date",
+        "game_datetime",
+        "game_pk",
+        "away_team_name",
+        "home_team_name",
+        "predicted_winner",
+        "confidence_label",
+        "probability_label",
+    ]
+    renamed = predictions[display_columns].rename(
+        columns={
+            "official_date": "date",
+            "game_datetime": "start_time_utc",
+            "game_pk": "game_id",
+            "away_team_name": "away_team",
+            "home_team_name": "home_team",
+            "predicted_winner": "selection",
+            "confidence_label": "confidence_tier",
+            "probability_label": "confidence_outlook",
+        }
+    )
+    if "start_time_utc" in renamed.columns:
+        renamed["start_time_utc"] = renamed["start_time_utc"].fillna("").astype(str)
+    print(renamed.to_string(index=False))
+    print(f"\nReport: {report_path}")
 
 
 def main() -> None:
@@ -121,32 +173,7 @@ def main() -> None:
     predictions = predict_dataframe(df, feature_names, model)
     report_text = build_text_report(predictions)
     args.output_report.write_text(report_text + "\n", encoding="utf-8")
-
-    if len(predictions) == 1:
-        row = predictions.iloc[0]
-        if "away_team_name" in row and "home_team_name" in row:
-            print(f"Matchup: {row['away_team_name']} at {row['home_team_name']}")
-        print(f"Predicted winner: {row['predicted_winner']}")
-        print(f"Confidence: {row['confidence_label']}")
-        print(f"Probability label: {row['probability_label']}")
-        print(f"Saved report to: {args.output_report}")
-        return
-
-    display_columns = [
-        column
-        for column in [
-            "official_date",
-            "game_pk",
-            "away_team_name",
-            "home_team_name",
-            "predicted_winner",
-            "confidence_label",
-            "probability_label",
-        ]
-        if column in predictions.columns
-    ]
-    print(predictions[display_columns].to_string(index=False))
-    print(f"\nSaved report to: {args.output_report}")
+    print_console_summary(predictions, args.output_report)
 
 
 if __name__ == "__main__":

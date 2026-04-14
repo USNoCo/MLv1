@@ -435,6 +435,7 @@ def make_feature_row(
 
     row: dict[str, Any] = {
         "official_date": game_date,
+        "game_datetime": game.get("gameDate"),
         "game_pk": safe_int(game.get("gamePk")),
         "home_team_id": home_team_id,
         "away_team_id": away_team_id,

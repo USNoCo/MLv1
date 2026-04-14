@@ -15,6 +15,7 @@ ARTIFACTS_DIR = Path("artifacts")
 MODEL_PATH = ARTIFACTS_DIR / "mlb_game_winner_model.joblib"
 METADATA_COLUMNS = {
     "official_date",
+    "game_datetime",
     "game_pk",
     "home_team_id",
     "away_team_id",

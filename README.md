@@ -1,28 +1,49 @@
 # MLB Daily Prediction Model
 
-This project now builds a stronger MLB game-winner model that updates from daily stats.
+A polished end-to-end MLB prediction workflow that rebuilds historical data, retrains a model on pre-game information, and produces same-day matchup selections in a clean text report.
 
-The feature set uses only information available before first pitch:
+The project is built around a practical forecasting goal: generate daily MLB predictions using only information that would have been available before first pitch.
 
-- rolling team form from prior completed games
-- home and away split performance
-- recent bullpen workload
-- probable starter history from prior starts
-- chronological train/test evaluation
+## Overview
 
-## Files
+This project:
 
-- `build_dataset.py` builds a season training set with rolling daily features
-- `build_daily_features.py` builds prediction features for scheduled games on a date
-- `mlb_daily.py` contains the shared feature-engineering pipeline
-- `train.py` trains the model on the generated dataset
-- `predict.py` scores either a JSON file or a CSV of daily features
+- builds rolling team and pitcher features from MLB API data
+- trains a supervised classification model to predict game winners
+- evaluates the model with chronological splits
+- generates same-day features for scheduled games
+- writes sorted predictions to `mlbResults.txt`
 
-## Factors Used
+At its core, the system avoids future leakage by creating each training row from information available before the game being predicted.
 
-The model trains on pre-game information only. It does not use the final result of a game to create that same game's features.
+## Project Structure
 
-### Team factors
+- `run_mlb_pipeline.py`: one-command workflow for rebuilding data, retraining, and generating the final report
+- `mlb_daily.py`: shared data collection, caching, rolling feature engineering, and dataset generation logic
+- `build_dataset.py`: builds a season-level training dataset from rolling daily features
+- `build_daily_features.py`: builds same-day prediction features for scheduled games
+- `train.py`: trains and saves the model
+- `predict.py`: scores feature files and writes the final text report
+
+## Modeling Approach
+
+The model is a `HistGradientBoostingClassifier` from `scikit-learn`.
+
+Training target:
+
+- `home_win = 1` when the home team wins
+- `home_win = 0` when the away team wins
+
+Evaluation approach:
+
+- chronological train/test splitting when date information is present
+- final production runs can fit on all historical rows available through the chosen prediction date
+
+## Feature Set
+
+The model uses pre-game information only.
+
+### Team performance factors
 
 - season win percentage
 - season average runs scored
@@ -38,31 +59,31 @@ The model trains on pre-game information only. It does not use the final result 
 - season pitching K/9
 - season pitching BB/9
 - season average errors
-- home split or away split win percentage
-- home split or away split average run differential
+- home or away split win percentage
+- home or away split average run differential
 - last 3 game win percentage
 - last 5 game win percentage
 - last 10 game win percentage
-- last 3 game runs scored average
+- last 3 game scoring average
 - last 3 game runs allowed average
-- last 5 game runs scored average
+- last 5 game scoring average
 - last 5 game runs allowed average
-- last 10 game runs scored average
+- last 10 game scoring average
 - last 10 game runs allowed average
 - last 5 game OPS average
-- last 5 game home runs average
-- last 5 game walks average
-- last 5 game strikeouts average
+- last 5 game home run average
+- last 5 game walk average
+- last 5 game strikeout average
 - last 5 game pitching ERA
 - last 5 game pitching WHIP
-- recent bullpen outs average over the last 3 games
-- recent bullpen pitches average over the last 3 games
-- recent bullpen ERA over the last 3 games
+- bullpen outs average over the last 3 games
+- bullpen pitches average over the last 3 games
+- bullpen ERA over the last 3 games
 - days since last game
 
 ### Probable pitcher factors
 
-- total prior starts
+- prior starts
 - ERA from prior starts
 - WHIP from prior starts
 - K/9 from prior starts
@@ -74,16 +95,9 @@ The model trains on pre-game information only. It does not use the final result 
 - K/9 over the last 3 starts
 - days since last start
 
-### Model target
+## Quick Start
 
-- `home_win = 1` if the home team won
-- `home_win = 0` if the away team won
-
-### Model type
-
-- `HistGradientBoostingClassifier` from `scikit-learn`
-
-## Setup
+### Setup
 
 ```powershell
 python -m venv .venv
@@ -91,70 +105,102 @@ python -m venv .venv
 pip install -r requirements.txt
 ```
 
-## One command
+### One-command run
 
 ```powershell
 python run_mlb_pipeline.py --date 2026-04-14
 ```
 
-That one command will:
+That command will:
 
-- rebuild historical training data through the target date
-- retrain the model on all available past games
-- generate same-day features for scheduled games
-- write the final predictions to `mlbResults.txt`
+- rebuild historical training data through the chosen date
+- retrain the production model on all available past games
+- generate feature rows for scheduled games on that date
+- write a ranked prediction report to `mlbResults.txt`
 
-## Build a daily training dataset
+## Step-by-Step Workflow
+
+### Build a training dataset
 
 ```powershell
 python build_dataset.py --target-season 2025
 ```
 
-That creates `data/mlb_daily_training_2025.csv`.
+Output:
 
-## Train the model
+- `data/mlb_daily_training_2025.csv`
+
+### Train the model
 
 ```powershell
 python train.py --dataset data/mlb_daily_training_2025.csv
 ```
 
-If the dataset includes `official_date`, training uses the first 80% of games for training and the last 20% for testing.
-
-## Build features for a specific date
+### Build same-day features
 
 ```powershell
 python build_daily_features.py --date 2025-09-01 --json-dir data/prediction_json
 ```
 
-That creates:
+Outputs:
 
 - `data/daily_features_2025-09-01.csv`
-- one JSON file per scheduled game in `data/prediction_json`
+- per-game JSON files in `data/prediction_json`
 
-## Score scheduled games
+### Generate predictions
 
 ```powershell
 python predict.py --features-csv data/daily_features_2025-09-01.csv
 ```
 
-## Important note
+Report output:
 
-This is a much better baseline, but it is still not a finished system.
+- `mlbResults.txt`
 
-The next biggest upgrades would be:
+## Output Format
 
-- injured-list and roster availability
-- park factors and weather
-- handedness splits against the scheduled starter
-- confirmed lineup features
-- multi-season training instead of one season
+The final report is ranked by strongest confidence first and includes:
 
-### Not included yet
+- matchup
+- start time in Eastern Time
+- selection
+- confidence tier
+- confidence outlook
+- generated timestamp
+- total number of games in the report
+
+Example report entry:
+
+```text
+1. Chicago Cubs at Philadelphia Phillies
+   Start Time: 06:40 PM ET
+   Selection: Philadelphia Phillies
+   Confidence Tier: High
+   Confidence Outlook: Very Likely
+```
+
+## Current Limitations
+
+This is a strong project baseline, but it is not yet a full production-grade betting system.
+
+Not included yet:
 
 - weather
-- injuries
+- injuries and active roster availability
 - confirmed lineups
-- betting odds
-- umpire data
-- handedness splits
-- Statcast quality-of-contact features
+- betting market odds
+- umpire assignments
+- handedness matchup splits
+- Statcast contact-quality features
+- park factor adjustments
+- multi-season training beyond the current workflow
+
+## Next Improvements
+
+The highest-impact next upgrades would be:
+
+- weather and park-factor integration
+- injured-list and lineup availability signals
+- handedness-based batting and pitching splits
+- multi-season backfilling for a larger training set
+- richer pitcher and bullpen quality metrics

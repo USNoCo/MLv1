@@ -1,104 +1,93 @@
-Date: 2026-04-14
-Game ID: 823478
-Matchup: Chicago Cubs at Philadelphia Phillies
-Predicted winner: Philadelphia Phillies
-Confidence: High
-Probability label: Very Likely
+MLB Daily Prediction Report
+Generated: 2026-04-14 18:18:41
+Games: 15
 
-Date: 2026-04-14
-Game ID: 824292
-Matchup: Kansas City Royals at Detroit Tigers
-Predicted winner: Kansas City Royals
-Confidence: Medium
-Probability label: Likely
+1. Chicago Cubs at Philadelphia Phillies
+   Start Time: 06:40 PM ET
+   Selection: Philadelphia Phillies
+   Confidence Tier: High
+   Confidence Outlook: Very Likely
 
-Date: 2026-04-14
-Game ID: 824531
-Matchup: San Francisco Giants at Cincinnati Reds
-Predicted winner: Cincinnati Reds
-Confidence: Medium
-Probability label: Likely
+2. Kansas City Royals at Detroit Tigers
+   Start Time: 06:40 PM ET
+   Selection: Kansas City Royals
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
 
-Date: 2026-04-14
-Game ID: 823802
-Matchup: Toronto Blue Jays at Milwaukee Brewers
-Predicted winner: Toronto Blue Jays
-Confidence: Medium
-Probability label: Likely
+3. San Francisco Giants at Cincinnati Reds
+   Start Time: 06:40 PM ET
+   Selection: Cincinnati Reds
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
 
-Date: 2026-04-14
-Game ID: 824935
-Matchup: Miami Marlins at Atlanta Braves
-Predicted winner: Miami Marlins
-Confidence: Medium
-Probability label: Likely
+4. Toronto Blue Jays at Milwaukee Brewers
+   Start Time: 07:40 PM ET
+   Selection: Toronto Blue Jays
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
 
-Date: 2026-04-14
-Game ID: 823315
-Matchup: Seattle Mariners at San Diego Padres
-Predicted winner: San Diego Padres
-Confidence: Low
-Probability label: Lean
+5. Miami Marlins at Atlanta Braves
+   Start Time: 07:15 PM ET
+   Selection: Miami Marlins
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
 
-Date: 2026-04-14
-Game ID: 823072
-Matchup: Cleveland Guardians at St. Louis Cardinals
-Predicted winner: St. Louis Cardinals
-Confidence: Low
-Probability label: Lean
+6. Seattle Mariners at San Diego Padres
+   Start Time: 09:40 PM ET
+   Selection: San Diego Padres
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 823965
-Matchup: New York Mets at Los Angeles Dodgers
-Predicted winner: Los Angeles Dodgers
-Confidence: Low
-Probability label: Lean
+7. Cleveland Guardians at St. Louis Cardinals
+   Start Time: 07:45 PM ET
+   Selection: St. Louis Cardinals
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 823562
-Matchup: Los Angeles Angels at New York Yankees
-Predicted winner: New York Yankees
-Confidence: Low
-Probability label: Lean
+8. New York Mets at Los Angeles Dodgers
+   Start Time: 10:10 PM ET
+   Selection: Los Angeles Dodgers
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 824616
-Matchup: Tampa Bay Rays at Chicago White Sox
-Predicted winner: Tampa Bay Rays
-Confidence: Low
-Probability label: Lean
+9. Los Angeles Angels at New York Yankees
+   Start Time: 07:05 PM ET
+   Selection: New York Yankees
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 824853
-Matchup: Arizona Diamondbacks at Baltimore Orioles
-Predicted winner: Baltimore Orioles
-Confidence: Low
-Probability label: Lean
+10. Tampa Bay Rays at Chicago White Sox
+   Start Time: 07:40 PM ET
+   Selection: Tampa Bay Rays
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 823398
-Matchup: Washington Nationals at Pittsburgh Pirates
-Predicted winner: Washington Nationals
-Confidence: Low
-Probability label: Lean
+11. Arizona Diamondbacks at Baltimore Orioles
+   Start Time: 06:35 PM ET
+   Selection: Baltimore Orioles
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 824210
-Matchup: Colorado Rockies at Houston Astros
-Predicted winner: Houston Astros
-Confidence: Low
-Probability label: Lean
+12. Washington Nationals at Pittsburgh Pirates
+   Start Time: 06:40 PM ET
+   Selection: Washington Nationals
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 823723
-Matchup: Boston Red Sox at Minnesota Twins
-Predicted winner: Boston Red Sox
-Confidence: Low
-Probability label: Lean
+13. Colorado Rockies at Houston Astros
+   Start Time: 08:10 PM ET
+   Selection: Houston Astros
+   Confidence Tier: Low
+   Confidence Outlook: Lean
 
-Date: 2026-04-14
-Game ID: 825022
-Matchup: Texas Rangers at Athletics
-Predicted winner: Texas Rangers
-Confidence: Low
-Probability label: Toss-Up
+14. Boston Red Sox at Minnesota Twins
+   Start Time: 07:40 PM ET
+   Selection: Boston Red Sox
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+15. Texas Rangers at Athletics
+   Start Time: 09:40 PM ET
+   Selection: Texas Rangers
+   Confidence Tier: Low
+   Confidence Outlook: Toss-Up
