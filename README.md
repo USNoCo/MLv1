@@ -108,7 +108,7 @@ pip install -r requirements.txt
 ### One-command run
 
 ```powershell
-python run_mlb_pipeline.py --date 2026-04-14
+python run_mlb_pipeline.py --date YYYY-MM-DD
 ```
 
 That command will:
