@@ -11,7 +11,7 @@ This project:
 - builds rolling team and pitcher features from MLB API data
 - trains a supervised classification model to predict game winners
 - evaluates the model with chronological splits
-- generates same-day features for scheduled games
+- generates same-day features only for games that have not started yet
 - writes sorted predictions to `mlbResults.txt`
 
 At its core, the system avoids future leakage by creating each training row from information available before the game being predicted.
@@ -95,6 +95,13 @@ The model uses pre-game information only.
 - K/9 over the last 3 starts
 - days since last start
 
+### Lineup availability factors
+
+- confirmed MLB batting order when available
+- projected batting order from recent starters when no confirmed lineup has posted
+- current injured-list filtering for projected daily lineups
+- projected or confirmed lineup OPS, OBP, SLG, plate appearances, and starts
+
 ## Quick Start
 
 ### Setup
@@ -115,7 +122,7 @@ That command will:
 
 - rebuild historical training data through the chosen date
 - retrain the production model on all available past games
-- generate feature rows for scheduled games on that date
+- generate feature rows for not-yet-started games on that date
 - write a ranked prediction report to `mlbResults.txt`
 
 ## Step-by-Step Workflow
@@ -186,8 +193,6 @@ This is a strong project baseline, but it is not yet a full production-grade bet
 Not included yet:
 
 - weather
-- injuries and active roster availability
-- confirmed lineups
 - betting market odds
 - umpire assignments
 - handedness matchup splits
@@ -200,7 +205,6 @@ Not included yet:
 The highest-impact next upgrades would be:
 
 - weather and park-factor integration
-- injured-list and lineup availability signals
 - handedness-based batting and pitching splits
 - multi-season backfilling for a larger training set
 - richer pitcher and bullpen quality metrics

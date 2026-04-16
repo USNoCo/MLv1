@@ -1,7 +1,7 @@
 import csv
 import hashlib
 import json
-from collections import deque
+from collections import Counter, deque
 from dataclasses import dataclass, field
 from datetime import date
 from pathlib import Path
@@ -65,15 +65,22 @@ def cache_path(prefix: str, key: str) -> Path:
     return path / f"{digest}.json"
 
 
-def fetch_json(url: str, params: dict[str, Any], cache_group: str, cache_key: str) -> dict[str, Any]:
+def fetch_json(
+    url: str,
+    params: dict[str, Any],
+    cache_group: str,
+    cache_key: str,
+    use_cache: bool = True,
+) -> dict[str, Any]:
     path = cache_path(cache_group, cache_key)
-    if path.exists():
+    if use_cache and path.exists():
         return json.loads(path.read_text(encoding="utf-8"))
 
     response = requests.get(url, params=params, timeout=30)
     response.raise_for_status()
     data = response.json()
-    path.write_text(json.dumps(data), encoding="utf-8")
+    if use_cache:
+        path.write_text(json.dumps(data), encoding="utf-8")
     return data
 
 
@@ -95,17 +102,18 @@ def fetch_schedule_for_season(season: int) -> list[dict[str, Any]]:
     return sorted(games, key=lambda game: (game.get("officialDate", ""), game.get("gamePk", 0)))
 
 
-def fetch_schedule_for_date(target_date: str) -> list[dict[str, Any]]:
+def fetch_schedule_for_date(target_date: str, use_cache: bool = True) -> list[dict[str, Any]]:
     data = fetch_json(
         f"{BASE_URL}/schedule",
         {
             "sportId": SPORT_ID,
             "date": target_date,
             "gameTypes": REGULAR_SEASON_GAME_TYPE,
-            "hydrate": "probablePitcher,team,linescore",
+            "hydrate": "probablePitcher,team,lineups,linescore",
         },
         "schedule",
         f"date-{target_date}",
+        use_cache=use_cache,
     )
     games: list[dict[str, Any]] = []
     for date_block in data.get("dates", []):
@@ -113,13 +121,50 @@ def fetch_schedule_for_date(target_date: str) -> list[dict[str, Any]]:
     return sorted(games, key=lambda game: (game.get("officialDate", ""), game.get("gamePk", 0)))
 
 
-def fetch_live_feed(game_pk: int) -> dict[str, Any]:
+def game_has_not_started(game: dict[str, Any]) -> bool:
+    status = game.get("status", {}) or {}
+    abstract_state = status.get("abstractGameState")
+    abstract_code = status.get("abstractGameCode")
+    detailed_state = str(status.get("detailedState", "")).lower()
+
+    if abstract_state != "Preview" and abstract_code != "P":
+        return False
+
+    unavailable_states = ("postponed", "cancelled", "canceled", "suspended", "final", "completed")
+    return not any(state in detailed_state for state in unavailable_states)
+
+
+def fetch_live_feed(game_pk: int, use_cache: bool = True) -> dict[str, Any]:
     return fetch_json(
         f"{LIVE_FEED_URL}/{game_pk}/feed/live",
         {},
         "game_feeds",
         f"game-{game_pk}",
+        use_cache=use_cache,
     )
+
+
+def fetch_team_roster(team_id: int, season: int, use_cache: bool = True) -> list[dict[str, Any]]:
+    data = fetch_json(
+        f"{BASE_URL}/teams/{team_id}/roster",
+        {"rosterType": "40Man", "season": season},
+        "team_rosters",
+        f"team-{team_id}-season-{season}-40man",
+        use_cache=use_cache,
+    )
+    return data.get("roster", [])
+
+
+def fetch_injured_player_ids(team_id: int, season: int, use_cache: bool = True) -> set[int]:
+    injured_ids: set[int] = set()
+    for roster_entry in fetch_team_roster(team_id, season, use_cache=use_cache):
+        status_description = (roster_entry.get("status", {}) or {}).get("description", "")
+        if "Injured" not in status_description:
+            continue
+        player_id = safe_int(roster_entry.get("person", {}).get("id"))
+        if player_id:
+            injured_ids.add(player_id)
+    return injured_ids
 
 
 def fetch_pitcher_game_logs(player_id: int, season: int) -> list[dict[str, Any]]:
@@ -191,6 +236,41 @@ class TeamState:
     last_game_date: str | None = None
     recent_games: deque[TeamGameRecord] = field(default_factory=lambda: deque(maxlen=10))
     recent_bullpen: deque[TeamGameRecord] = field(default_factory=lambda: deque(maxlen=3))
+    recent_batting_orders: deque[list[int]] = field(default_factory=lambda: deque(maxlen=10))
+    seen_batter_ids: set[int] = field(default_factory=set)
+
+
+@dataclass
+class PlayerBattingState:
+    games: int = 0
+    starts: int = 0
+    plate_appearances: int = 0
+    at_bats: int = 0
+    hits: int = 0
+    doubles: int = 0
+    triples: int = 0
+    home_runs: int = 0
+    walks: int = 0
+    hit_by_pitch: int = 0
+    sac_flies: int = 0
+    total_bases: int = 0
+
+    @property
+    def obp(self) -> float | None:
+        denominator = self.at_bats + self.walks + self.hit_by_pitch + self.sac_flies
+        return ratio(self.hits + self.walks + self.hit_by_pitch, denominator)
+
+    @property
+    def slg(self) -> float | None:
+        return ratio(self.total_bases, self.at_bats)
+
+    @property
+    def ops(self) -> float | None:
+        obp = self.obp
+        slg = self.slg
+        if obp is None or slg is None:
+            return None
+        return obp + slg
 
 
 def average(values: list[float]) -> float | None:
@@ -292,6 +372,153 @@ def update_team_state(state: TeamState, record: TeamGameRecord) -> None:
     state.last_game_date = record.date
     state.recent_games.append(record)
     state.recent_bullpen.append(record)
+
+
+def extract_batting_order(feed: dict[str, Any], side: str) -> list[int]:
+    raw_order = feed.get("liveData", {}).get("boxscore", {}).get("teams", {}).get(side, {}).get("battingOrder", [])
+    return [safe_int(player_id) for player_id in raw_order if safe_int(player_id)]
+
+
+def record_team_batters(state: TeamState, feed: dict[str, Any], side: str) -> None:
+    order = extract_batting_order(feed, side)
+    if order:
+        state.recent_batting_orders.append(order)
+        state.seen_batter_ids.update(order)
+
+    players = feed.get("liveData", {}).get("boxscore", {}).get("teams", {}).get(side, {}).get("players", {})
+    for player_key, player in players.items():
+        batting = player.get("stats", {}).get("batting", {})
+        if not batting:
+            continue
+        player_id = safe_int(player.get("person", {}).get("id")) or safe_int(str(player_key).replace("ID", ""))
+        if player_id:
+            state.seen_batter_ids.add(player_id)
+
+
+def update_player_batting_states(
+    player_states: dict[int, PlayerBattingState],
+    feed: dict[str, Any],
+    side: str,
+) -> None:
+    batting_order = set(extract_batting_order(feed, side))
+    players = feed.get("liveData", {}).get("boxscore", {}).get("teams", {}).get(side, {}).get("players", {})
+
+    for player_key, player in players.items():
+        batting = player.get("stats", {}).get("batting", {})
+        if not batting:
+            continue
+
+        player_id = safe_int(player.get("person", {}).get("id")) or safe_int(str(player_key).replace("ID", ""))
+        if not player_id:
+            continue
+
+        plate_appearances = safe_int(batting.get("plateAppearances"))
+        at_bats = safe_int(batting.get("atBats"))
+        walks = safe_int(batting.get("baseOnBalls"))
+        hit_by_pitch = safe_int(batting.get("hitByPitch"))
+        sac_flies = safe_int(batting.get("sacFlies"))
+        if plate_appearances == 0:
+            plate_appearances = at_bats + walks + hit_by_pitch + sac_flies
+        if plate_appearances == 0 and at_bats == 0:
+            continue
+
+        hits = safe_int(batting.get("hits"))
+        doubles = safe_int(batting.get("doubles"))
+        triples = safe_int(batting.get("triples"))
+        home_runs = safe_int(batting.get("homeRuns"))
+        total_bases = safe_int(batting.get("totalBases"))
+        if total_bases == 0 and hits:
+            singles = max(0, hits - doubles - triples - home_runs)
+            total_bases = singles + (2 * doubles) + (3 * triples) + (4 * home_runs)
+
+        state = player_states.setdefault(player_id, PlayerBattingState())
+        state.games += 1
+        state.starts += int(player_id in batting_order)
+        state.plate_appearances += plate_appearances
+        state.at_bats += at_bats
+        state.hits += hits
+        state.doubles += doubles
+        state.triples += triples
+        state.home_runs += home_runs
+        state.walks += walks
+        state.hit_by_pitch += hit_by_pitch
+        state.sac_flies += sac_flies
+        state.total_bases += total_bases
+
+
+def update_lineup_history(
+    team_state: TeamState,
+    player_states: dict[int, PlayerBattingState],
+    feed: dict[str, Any],
+    side: str,
+) -> None:
+    record_team_batters(team_state, feed, side)
+    update_player_batting_states(player_states, feed, side)
+
+
+def project_lineup(team_state: TeamState, unavailable_player_ids: set[int]) -> tuple[list[int], int]:
+    start_counts: Counter[int] = Counter()
+    recency: dict[int, int] = {}
+
+    for index, order in enumerate(team_state.recent_batting_orders):
+        for player_id in order:
+            start_counts[player_id] += 1
+            recency[player_id] = index
+
+    ranked_players = sorted(
+        start_counts,
+        key=lambda player_id: (start_counts[player_id], recency.get(player_id, -1)),
+        reverse=True,
+    )
+    unavailable_regulars = sum(1 for player_id in ranked_players[:9] if player_id in unavailable_player_ids)
+    projected = [player_id for player_id in ranked_players if player_id not in unavailable_player_ids][:9]
+
+    if len(projected) < 9:
+        fallback_players = [
+            player_id
+            for player_id in team_state.seen_batter_ids
+            if player_id not in unavailable_player_ids and player_id not in projected
+        ]
+        projected.extend(fallback_players[: 9 - len(projected)])
+
+    return projected, unavailable_regulars
+
+
+def lineup_snapshot(
+    team_state: TeamState,
+    player_states: dict[int, PlayerBattingState],
+    lineup_feed: dict[str, Any] | None,
+    side: str,
+    unavailable_player_ids: set[int],
+) -> dict[str, float | None]:
+    confirmed_order = extract_batting_order(lineup_feed, side) if lineup_feed else []
+    if confirmed_order:
+        lineup = confirmed_order
+        confirmed = 1.0
+        unavailable_regulars = 0
+    else:
+        lineup, unavailable_regulars = project_lineup(team_state, unavailable_player_ids)
+        confirmed = 0.0
+
+    hitter_states = [
+        player_states[player_id]
+        for player_id in lineup
+        if player_id in player_states and player_states[player_id].plate_appearances > 0
+    ]
+    ops_values = [state.ops for state in hitter_states if state.ops is not None]
+    obp_values = [state.obp for state in hitter_states if state.obp is not None]
+    slg_values = [state.slg for state in hitter_states if state.slg is not None]
+
+    return {
+        "lineup_confirmed": confirmed,
+        "lineup_batters": float(len(lineup)),
+        "lineup_unavailable_regulars": float(unavailable_regulars),
+        "lineup_avg_ops": average(ops_values),
+        "lineup_avg_obp": average(obp_values),
+        "lineup_avg_slg": average(slg_values),
+        "lineup_avg_plate_appearances": average([float(state.plate_appearances) for state in hitter_states]),
+        "lineup_avg_starts": average([float(state.starts) for state in hitter_states]),
+    }
 
 
 def extract_team_record(feed: dict[str, Any], side: str) -> TeamGameRecord:
@@ -425,7 +652,10 @@ def build_pitcher_snapshot(player_id: int | None, season: int, before_date: str)
 def make_feature_row(
     game: dict[str, Any],
     team_states: dict[int, TeamState],
+    player_states: dict[int, PlayerBattingState],
     season: int,
+    lineup_feed: dict[str, Any] | None = None,
+    use_current_injuries: bool = False,
 ) -> dict[str, Any]:
     game_date = game.get("officialDate", "")
     home_team = game.get("teams", {}).get("home", {}).get("team", {})
@@ -444,8 +674,17 @@ def make_feature_row(
     }
 
     for prefix, team_id, is_home in (("home", home_team_id, True), ("away", away_team_id, False)):
-        snapshot = team_snapshot(team_states.setdefault(team_id, TeamState()), is_home, game_date)
+        team_state = team_states.setdefault(team_id, TeamState())
+        snapshot = team_snapshot(team_state, is_home, game_date)
         for feature_name, feature_value in snapshot.items():
+            row[f"{prefix}_{feature_name}"] = feature_value
+
+        side = "home" if is_home else "away"
+        unavailable_player_ids = (
+            fetch_injured_player_ids(team_id, season, use_cache=False) if use_current_injuries and team_id else set()
+        )
+        lineup_features = lineup_snapshot(team_state, player_states, lineup_feed, side, unavailable_player_ids)
+        for feature_name, feature_value in lineup_features.items():
             row[f"{prefix}_{feature_name}"] = feature_value
 
     home_pitcher_id = game.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id")
@@ -462,7 +701,16 @@ def process_completed_games_before(
     season: int,
     before_date: str | None = None,
 ) -> dict[int, TeamState]:
+    states, _ = process_completed_games_and_players_before(season, before_date=before_date)
+    return states
+
+
+def process_completed_games_and_players_before(
+    season: int,
+    before_date: str | None = None,
+) -> tuple[dict[int, TeamState], dict[int, PlayerBattingState]]:
     states: dict[int, TeamState] = {}
+    player_states: dict[int, PlayerBattingState] = {}
     for game in fetch_schedule_for_season(season):
         if game.get("status", {}).get("codedGameState") != "F":
             continue
@@ -479,13 +727,18 @@ def process_completed_games_before(
 
         home_team_id = safe_int(game.get("teams", {}).get("home", {}).get("team", {}).get("id"))
         away_team_id = safe_int(game.get("teams", {}).get("away", {}).get("team", {}).get("id"))
-        update_team_state(states.setdefault(home_team_id, TeamState()), home_record)
-        update_team_state(states.setdefault(away_team_id, TeamState()), away_record)
-    return states
+        home_state = states.setdefault(home_team_id, TeamState())
+        away_state = states.setdefault(away_team_id, TeamState())
+        update_team_state(home_state, home_record)
+        update_team_state(away_state, away_record)
+        update_lineup_history(home_state, player_states, feed, "home")
+        update_lineup_history(away_state, player_states, feed, "away")
+    return states, player_states
 
 
 def build_training_rows(season: int, before_date: str | None = None) -> list[dict[str, Any]]:
     states: dict[int, TeamState] = {}
+    player_states: dict[int, PlayerBattingState] = {}
     rows: list[dict[str, Any]] = []
 
     for game in fetch_schedule_for_season(season):
@@ -494,8 +747,8 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
         if before_date is not None and game.get("officialDate", "") >= before_date:
             continue
 
-        row = make_feature_row(game, states, season)
         feed = fetch_live_feed(safe_int(game.get("gamePk")))
+        row = make_feature_row(game, states, player_states, season, lineup_feed=feed)
         home_runs, away_runs = extract_game_outcome(feed)
         row["home_win"] = int(home_runs > away_runs)
         rows.append(row)
@@ -507,21 +760,35 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
 
         home_team_id = safe_int(game.get("teams", {}).get("home", {}).get("team", {}).get("id"))
         away_team_id = safe_int(game.get("teams", {}).get("away", {}).get("team", {}).get("id"))
-        update_team_state(states.setdefault(home_team_id, TeamState()), home_record)
-        update_team_state(states.setdefault(away_team_id, TeamState()), away_record)
+        home_state = states.setdefault(home_team_id, TeamState())
+        away_state = states.setdefault(away_team_id, TeamState())
+        update_team_state(home_state, home_record)
+        update_team_state(away_state, away_record)
+        update_lineup_history(home_state, player_states, feed, "home")
+        update_lineup_history(away_state, player_states, feed, "away")
 
     return rows
 
 
 def build_daily_prediction_rows(target_date: str, season: int | None = None) -> list[dict[str, Any]]:
     resolved_season = season or date.fromisoformat(target_date).year
-    states = process_completed_games_before(resolved_season, before_date=target_date)
+    states, player_states = process_completed_games_and_players_before(resolved_season, before_date=target_date)
 
     rows: list[dict[str, Any]] = []
-    for game in fetch_schedule_for_date(target_date):
-        if game.get("status", {}).get("codedGameState") == "F":
+    for game in fetch_schedule_for_date(target_date, use_cache=False):
+        if not game_has_not_started(game):
             continue
-        rows.append(make_feature_row(game, states, resolved_season))
+        lineup_feed = fetch_live_feed(safe_int(game.get("gamePk")), use_cache=False)
+        rows.append(
+            make_feature_row(
+                game,
+                states,
+                player_states,
+                resolved_season,
+                lineup_feed=lineup_feed,
+                use_current_injuries=True,
+            )
+        )
     return rows
 
 

@@ -1,93 +1,21 @@
 MLB Daily Prediction Report
-Generated: 2026-04-14 18:18:41
-Games: 15
+Generated: 2026-04-16 17:14:18
+Games: 3
 
-1. Chicago Cubs at Philadelphia Phillies
-   Start Time: 06:40 PM ET
-   Selection: Philadelphia Phillies
-   Confidence Tier: High
-   Confidence Outlook: Very Likely
-
-2. Kansas City Royals at Detroit Tigers
-   Start Time: 06:40 PM ET
-   Selection: Kansas City Royals
+1. Baltimore Orioles at Cleveland Guardians
+   Start Time: 06:10 PM ET
+   Selection: Cleveland Guardians
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-3. San Francisco Giants at Cincinnati Reds
-   Start Time: 06:40 PM ET
-   Selection: Cincinnati Reds
+2. Colorado Rockies at Houston Astros
+   Start Time: 08:10 PM ET
+   Selection: Houston Astros
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-4. Toronto Blue Jays at Milwaukee Brewers
-   Start Time: 07:40 PM ET
-   Selection: Toronto Blue Jays
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-5. Miami Marlins at Atlanta Braves
-   Start Time: 07:15 PM ET
-   Selection: Miami Marlins
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-6. Seattle Mariners at San Diego Padres
-   Start Time: 09:40 PM ET
+3. Seattle Mariners at San Diego Padres
+   Start Time: 08:40 PM ET
    Selection: San Diego Padres
    Confidence Tier: Low
    Confidence Outlook: Lean
-
-7. Cleveland Guardians at St. Louis Cardinals
-   Start Time: 07:45 PM ET
-   Selection: St. Louis Cardinals
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-8. New York Mets at Los Angeles Dodgers
-   Start Time: 10:10 PM ET
-   Selection: Los Angeles Dodgers
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-9. Los Angeles Angels at New York Yankees
-   Start Time: 07:05 PM ET
-   Selection: New York Yankees
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-10. Tampa Bay Rays at Chicago White Sox
-   Start Time: 07:40 PM ET
-   Selection: Tampa Bay Rays
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-11. Arizona Diamondbacks at Baltimore Orioles
-   Start Time: 06:35 PM ET
-   Selection: Baltimore Orioles
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-12. Washington Nationals at Pittsburgh Pirates
-   Start Time: 06:40 PM ET
-   Selection: Washington Nationals
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-13. Colorado Rockies at Houston Astros
-   Start Time: 08:10 PM ET
-   Selection: Houston Astros
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-14. Boston Red Sox at Minnesota Twins
-   Start Time: 07:40 PM ET
-   Selection: Boston Red Sox
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-15. Texas Rangers at Athletics
-   Start Time: 09:40 PM ET
-   Selection: Texas Rangers
-   Confidence Tier: Low
-   Confidence Outlook: Toss-Up
