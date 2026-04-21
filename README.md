@@ -80,6 +80,7 @@ The model uses pre-game information only.
 - bullpen pitches average over the last 3 games
 - bullpen ERA over the last 3 games
 - days since last game
+- prior-season team win percentage, run differential, scoring, batting, pitching, fielding, and venue split averages
 
 ### Probable pitcher factors
 
@@ -94,6 +95,7 @@ The model uses pre-game information only.
 - WHIP over the last 3 starts
 - K/9 over the last 3 starts
 - days since last start
+- prior-season starts, ERA, WHIP, K/9, BB/9, innings per start, pitches per start, and recent-start rates
 
 ### Lineup availability factors
 
@@ -188,8 +190,6 @@ Example report entry:
 
 ## Current Limitations
 
-This is a strong project baseline, but it is not yet a full production-grade betting system.
-
 Not included yet:
 
 - weather
@@ -198,13 +198,10 @@ Not included yet:
 - handedness matchup splits
 - Statcast contact-quality features
 - park factor adjustments
-- multi-season training beyond the current workflow
 
 ## Next Improvements
 
-The highest-impact next upgrades would be:
-
 - weather and park-factor integration
 - handedness-based batting and pitching splits
-- multi-season backfilling for a larger training set
+- deeper multi-season backfilling for a larger training set
 - richer pitcher and bullpen quality metrics

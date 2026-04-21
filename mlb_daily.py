@@ -339,6 +339,54 @@ def team_snapshot(state: TeamState, as_home_team: bool, game_date: str) -> dict[
     }
 
 
+def last_season_team_snapshot(state: TeamState | None, as_home_team: bool) -> dict[str, float | None]:
+    if state is None:
+        return {
+            "games_played": 0.0,
+            "win_pct": None,
+            "runs_scored_avg": None,
+            "runs_allowed_avg": None,
+            "run_diff_avg": None,
+            "batting_home_runs_avg": None,
+            "batting_walks_avg": None,
+            "batting_strikeouts_avg": None,
+            "batting_ops_avg": None,
+            "stolen_bases_avg": None,
+            "pitching_era": None,
+            "pitching_whip": None,
+            "pitching_k9": None,
+            "pitching_bb9": None,
+            "errors_avg": None,
+            "venue_split_win_pct": None,
+            "venue_split_run_diff_avg": None,
+        }
+
+    split_games = state.home_games if as_home_team else state.away_games
+    split_wins = state.home_wins if as_home_team else state.away_wins
+    split_runs_scored = state.home_runs_scored if as_home_team else state.away_runs_scored
+    split_runs_allowed = state.home_runs_allowed if as_home_team else state.away_runs_allowed
+
+    return {
+        "games_played": float(state.games),
+        "win_pct": ratio(state.wins, state.games),
+        "runs_scored_avg": ratio(state.runs_scored, state.games),
+        "runs_allowed_avg": ratio(state.runs_allowed, state.games),
+        "run_diff_avg": ratio(state.runs_scored - state.runs_allowed, state.games),
+        "batting_home_runs_avg": ratio(state.batting_home_runs, state.games),
+        "batting_walks_avg": ratio(state.batting_walks, state.games),
+        "batting_strikeouts_avg": ratio(state.batting_strikeouts, state.games),
+        "batting_ops_avg": ratio(state.batting_ops_total, state.batting_ops_games),
+        "stolen_bases_avg": ratio(state.stolen_bases, state.games),
+        "pitching_era": era(state.pitching_earned_runs, state.pitching_outs),
+        "pitching_whip": ratio(state.pitching_hits_allowed + state.pitching_walks_allowed, state.pitching_outs / 3.0),
+        "pitching_k9": per_nine(state.pitching_strikeouts, state.pitching_outs),
+        "pitching_bb9": per_nine(state.pitching_walks_allowed, state.pitching_outs),
+        "errors_avg": ratio(state.errors, state.games),
+        "venue_split_win_pct": ratio(split_wins, split_games),
+        "venue_split_run_diff_avg": ratio(split_runs_scored - split_runs_allowed, split_games),
+    }
+
+
 def update_team_state(state: TeamState, record: TeamGameRecord) -> None:
     state.games += 1
     state.wins += record.win
@@ -573,25 +621,29 @@ def extract_game_outcome(feed: dict[str, Any]) -> tuple[int, int]:
     return home_runs, away_runs
 
 
-def build_pitcher_snapshot(player_id: int | None, season: int, before_date: str) -> dict[str, float | None]:
+def empty_pitcher_snapshot() -> dict[str, float | None]:
+    return {
+        "starts": None,
+        "era": None,
+        "whip": None,
+        "k9": None,
+        "bb9": None,
+        "innings_per_start": None,
+        "pitches_per_start": None,
+        "last3_era": None,
+        "last3_whip": None,
+        "last3_k9": None,
+        "days_since_last_start": None,
+    }
+
+
+def build_pitcher_snapshot(player_id: int | None, season: int, before_date: str | None = None) -> dict[str, float | None]:
     if not player_id:
-        return {
-            "starts": None,
-            "era": None,
-            "whip": None,
-            "k9": None,
-            "bb9": None,
-            "innings_per_start": None,
-            "pitches_per_start": None,
-            "last3_era": None,
-            "last3_whip": None,
-            "last3_k9": None,
-            "days_since_last_start": None,
-        }
+        return empty_pitcher_snapshot()
 
     starts = []
     for split in fetch_pitcher_game_logs(player_id, season):
-        if split.get("date", "") >= before_date:
+        if before_date is not None and split.get("date", "") >= before_date:
             break
         stat = split.get("stat", {})
         if safe_int(stat.get("gamesStarted")) < 1:
@@ -645,7 +697,7 @@ def build_pitcher_snapshot(player_id: int | None, season: int, before_date: str)
             sum(start["outs"] for start in last3) / 3.0,
         ),
         "last3_k9": per_nine(sum(start["strikeouts"] for start in last3), sum(start["outs"] for start in last3)),
-        "days_since_last_start": days_between(starts[-1]["date"], before_date),
+        "days_since_last_start": days_between(starts[-1]["date"], before_date) if before_date is not None else None,
     }
 
 
@@ -654,6 +706,7 @@ def make_feature_row(
     team_states: dict[int, TeamState],
     player_states: dict[int, PlayerBattingState],
     season: int,
+    last_season_team_states: dict[int, TeamState] | None = None,
     lineup_feed: dict[str, Any] | None = None,
     use_current_injuries: bool = False,
 ) -> dict[str, Any]:
@@ -679,6 +732,11 @@ def make_feature_row(
         for feature_name, feature_value in snapshot.items():
             row[f"{prefix}_{feature_name}"] = feature_value
 
+        last_season_state = (last_season_team_states or {}).get(team_id)
+        last_season_snapshot = last_season_team_snapshot(last_season_state, is_home)
+        for feature_name, feature_value in last_season_snapshot.items():
+            row[f"{prefix}_last_season_{feature_name}"] = feature_value
+
         side = "home" if is_home else "away"
         unavailable_player_ids = (
             fetch_injured_player_ids(team_id, season, use_cache=False) if use_current_injuries and team_id else set()
@@ -690,9 +748,16 @@ def make_feature_row(
     home_pitcher_id = game.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id")
     away_pitcher_id = game.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("id")
     for prefix, pitcher_id in (("home_pitcher", home_pitcher_id), ("away_pitcher", away_pitcher_id)):
-        snapshot = build_pitcher_snapshot(safe_int(pitcher_id) or None, season, game_date)
+        resolved_pitcher_id = safe_int(pitcher_id) or None
+        snapshot = build_pitcher_snapshot(resolved_pitcher_id, season, game_date)
         for feature_name, feature_value in snapshot.items():
             row[f"{prefix}_{feature_name}"] = feature_value
+
+        last_season_snapshot = build_pitcher_snapshot(resolved_pitcher_id, season - 1)
+        for feature_name, feature_value in last_season_snapshot.items():
+            if feature_name == "days_since_last_start":
+                continue
+            row[f"{prefix}_last_season_{feature_name}"] = feature_value
 
     return row
 
@@ -739,6 +804,7 @@ def process_completed_games_and_players_before(
 def build_training_rows(season: int, before_date: str | None = None) -> list[dict[str, Any]]:
     states: dict[int, TeamState] = {}
     player_states: dict[int, PlayerBattingState] = {}
+    last_season_team_states = process_completed_games_before(season - 1)
     rows: list[dict[str, Any]] = []
 
     for game in fetch_schedule_for_season(season):
@@ -748,7 +814,14 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
             continue
 
         feed = fetch_live_feed(safe_int(game.get("gamePk")))
-        row = make_feature_row(game, states, player_states, season, lineup_feed=feed)
+        row = make_feature_row(
+            game,
+            states,
+            player_states,
+            season,
+            last_season_team_states=last_season_team_states,
+            lineup_feed=feed,
+        )
         home_runs, away_runs = extract_game_outcome(feed)
         row["home_win"] = int(home_runs > away_runs)
         rows.append(row)
@@ -773,6 +846,7 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
 def build_daily_prediction_rows(target_date: str, season: int | None = None) -> list[dict[str, Any]]:
     resolved_season = season or date.fromisoformat(target_date).year
     states, player_states = process_completed_games_and_players_before(resolved_season, before_date=target_date)
+    last_season_team_states = process_completed_games_before(resolved_season - 1)
 
     rows: list[dict[str, Any]] = []
     for game in fetch_schedule_for_date(target_date, use_cache=False):
@@ -785,6 +859,7 @@ def build_daily_prediction_rows(target_date: str, season: int | None = None) -> 
                 states,
                 player_states,
                 resolved_season,
+                last_season_team_states=last_season_team_states,
                 lineup_feed=lineup_feed,
                 use_current_injuries=True,
             )
