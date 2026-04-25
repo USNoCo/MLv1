@@ -22,6 +22,10 @@ METADATA_COLUMNS = {
     "home_team_name",
     "away_team_name",
 }
+EXCLUDED_FEATURE_PREFIXES = (
+    "home_last_season_",
+    "away_last_season_",
+)
 
 
 def parse_args() -> argparse.Namespace:
@@ -62,7 +66,13 @@ def load_dataset(dataset_path: Path) -> tuple[pd.DataFrame, list[str]]:
     df = pd.read_csv(dataset_path)
     if "home_win" not in df.columns:
         raise ValueError("Dataset must include a 'home_win' column.")
-    feature_columns = [column for column in df.columns if column not in METADATA_COLUMNS and column != "home_win"]
+    feature_columns = [
+        column
+        for column in df.columns
+        if column not in METADATA_COLUMNS
+        and column != "home_win"
+        and not column.startswith(EXCLUDED_FEATURE_PREFIXES)
+    ]
     return df, feature_columns
 
 

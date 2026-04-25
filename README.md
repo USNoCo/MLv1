@@ -80,7 +80,6 @@ The model uses pre-game information only.
 - bullpen pitches average over the last 3 games
 - bullpen ERA over the last 3 games
 - days since last game
-- prior-season team win percentage, run differential, scoring, batting, pitching, fielding, and venue split averages
 
 ### Probable pitcher factors
 
@@ -96,6 +95,8 @@ The model uses pre-game information only.
 - K/9 over the last 3 starts
 - days since last start
 - prior-season starts, ERA, WHIP, K/9, BB/9, innings per start, pitches per start, and recent-start rates
+
+Note: prior-season team columns are still generated in feature files for inspection, but they are excluded from model training by default because recent holdout tests showed weaker calibration when they were included.
 
 ### Lineup availability factors
 

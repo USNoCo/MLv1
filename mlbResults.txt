@@ -1,93 +1,93 @@
 MLB Daily Prediction Report
-Generated: 2026-04-21 00:00:10
+Generated: 2026-04-24 23:17:06
 Games: 15
 
-1. Houston Astros at Cleveland Guardians
-   Start Time: 06:10 PM ET
-   Selection: Cleveland Guardians
+1. Colorado Rockies at New York Mets
+   Start Time: 04:10 PM ET
+   Selection: New York Mets
    Confidence Tier: High
    Confidence Outlook: Very Likely
 
-2. St. Louis Cardinals at Miami Marlins
-   Start Time: 06:40 PM ET
-   Selection: Miami Marlins
+2. San Diego Padres at Arizona Diamondbacks
+   Start Time: 06:05 PM ET
+   Selection: San Diego Padres
+   Confidence Tier: High
+   Confidence Outlook: Very Likely
+
+3. Boston Red Sox at Baltimore Orioles
+   Start Time: 12:05 PM ET
+   Selection: Boston Red Sox
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-3. Milwaukee Brewers at Detroit Tigers
-   Start Time: 06:40 PM ET
-   Selection: Milwaukee Brewers
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-4. Cincinnati Reds at Tampa Bay Rays
-   Start Time: 06:40 PM ET
-   Selection: Tampa Bay Rays
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-5. Minnesota Twins at New York Mets
-   Start Time: 07:10 PM ET
+4. Minnesota Twins at Tampa Bay Rays
+   Start Time: 04:10 PM ET
    Selection: Minnesota Twins
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-6. Chicago White Sox at Arizona Diamondbacks
-   Start Time: 09:40 PM ET
-   Selection: Arizona Diamondbacks
+5. Washington Nationals at Chicago White Sox
+   Start Time: 04:10 PM ET
+   Selection: Washington Nationals
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-7. Toronto Blue Jays at Los Angeles Angels
-   Start Time: 09:38 PM ET
-   Selection: Los Angeles Angels
+6. Detroit Tigers at Cincinnati Reds
+   Start Time: 07:15 PM ET
+   Selection: Cincinnati Reds
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-8. Athletics at Seattle Mariners
-   Start Time: 09:40 PM ET
+7. Seattle Mariners at St. Louis Cardinals
+   Start Time: 02:15 PM ET
    Selection: Seattle Mariners
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-9. San Diego Padres at Colorado Rockies
-   Start Time: 08:40 PM ET
-   Selection: Colorado Rockies
+8. Los Angeles Angels at Kansas City Royals
+   Start Time: 07:10 PM ET
+   Selection: Los Angeles Angels
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-10. Pittsburgh Pirates at Texas Rangers
-   Start Time: 08:05 PM ET
-   Selection: Texas Rangers
+9. Pittsburgh Pirates at Milwaukee Brewers
+   Start Time: 07:10 PM ET
+   Selection: Milwaukee Brewers
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-11. Philadelphia Phillies at Chicago Cubs
-   Start Time: 07:40 PM ET
-   Selection: Chicago Cubs
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-12. Atlanta Braves at Washington Nationals
-   Start Time: 06:45 PM ET
-   Selection: Washington Nationals
-   Confidence Tier: Low
-   Confidence Outlook: Lean
-
-13. Los Angeles Dodgers at San Francisco Giants
-   Start Time: 09:45 PM ET
+10. Chicago Cubs at Los Angeles Dodgers
+   Start Time: 07:15 PM ET
    Selection: Los Angeles Dodgers
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-14. New York Yankees at Boston Red Sox
-   Start Time: 06:45 PM ET
-   Selection: Boston Red Sox
+11. New York Yankees at Houston Astros
+   Start Time: 07:10 PM ET
+   Selection: Houston Astros
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+12. Cleveland Guardians at Toronto Blue Jays
+   Start Time: 03:07 PM ET
+   Selection: Toronto Blue Jays
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+13. Miami Marlins at San Francisco Giants
+   Start Time: 04:05 PM ET
+   Selection: Miami Marlins
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
 
-15. Baltimore Orioles at Kansas City Royals
-   Start Time: 07:40 PM ET
-   Selection: Baltimore Orioles
+14. Philadelphia Phillies at Atlanta Braves
+   Start Time: 07:15 PM ET
+   Selection: Atlanta Braves
+   Confidence Tier: Low
+   Confidence Outlook: Toss-Up
+
+15. Athletics at Texas Rangers
+   Start Time: 07:05 PM ET
+   Selection: Texas Rangers
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
