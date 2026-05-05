@@ -16,6 +16,7 @@ SPORT_ID = 1
 REGULAR_SEASON_GAME_TYPE = "R"
 DATA_DIR = Path("data")
 CACHE_DIR = DATA_DIR / "cache"
+BVP_HISTORY_SEASONS = 3
 
 
 def safe_float(value: Any) -> float | None:
@@ -253,6 +254,39 @@ class PlayerBattingState:
     walks: int = 0
     hit_by_pitch: int = 0
     sac_flies: int = 0
+    total_bases: int = 0
+
+    @property
+    def obp(self) -> float | None:
+        denominator = self.at_bats + self.walks + self.hit_by_pitch + self.sac_flies
+        return ratio(self.hits + self.walks + self.hit_by_pitch, denominator)
+
+    @property
+    def slg(self) -> float | None:
+        return ratio(self.total_bases, self.at_bats)
+
+    @property
+    def ops(self) -> float | None:
+        obp = self.obp
+        slg = self.slg
+        if obp is None or slg is None:
+            return None
+        return obp + slg
+
+
+@dataclass
+class BatterPitcherMatchupState:
+    games: set[int] = field(default_factory=set)
+    plate_appearances: int = 0
+    at_bats: int = 0
+    hits: int = 0
+    doubles: int = 0
+    triples: int = 0
+    home_runs: int = 0
+    walks: int = 0
+    hit_by_pitch: int = 0
+    sac_flies: int = 0
+    strikeouts: int = 0
     total_bases: int = 0
 
     @property
@@ -539,14 +573,7 @@ def lineup_snapshot(
     side: str,
     unavailable_player_ids: set[int],
 ) -> dict[str, float | None]:
-    confirmed_order = extract_batting_order(lineup_feed, side) if lineup_feed else []
-    if confirmed_order:
-        lineup = confirmed_order
-        confirmed = 1.0
-        unavailable_regulars = 0
-    else:
-        lineup, unavailable_regulars = project_lineup(team_state, unavailable_player_ids)
-        confirmed = 0.0
+    lineup, confirmed, unavailable_regulars = resolve_lineup(team_state, lineup_feed, side, unavailable_player_ids)
 
     hitter_states = [
         player_states[player_id]
@@ -567,6 +594,20 @@ def lineup_snapshot(
         "lineup_avg_plate_appearances": average([float(state.plate_appearances) for state in hitter_states]),
         "lineup_avg_starts": average([float(state.starts) for state in hitter_states]),
     }
+
+
+def resolve_lineup(
+    team_state: TeamState,
+    lineup_feed: dict[str, Any] | None,
+    side: str,
+    unavailable_player_ids: set[int],
+) -> tuple[list[int], float, int]:
+    confirmed_order = extract_batting_order(lineup_feed, side) if lineup_feed else []
+    if confirmed_order:
+        return confirmed_order, 1.0, 0
+
+    lineup, unavailable_regulars = project_lineup(team_state, unavailable_player_ids)
+    return lineup, 0.0, unavailable_regulars
 
 
 def extract_team_record(feed: dict[str, Any], side: str) -> TeamGameRecord:
@@ -701,11 +742,136 @@ def build_pitcher_snapshot(player_id: int | None, season: int, before_date: str 
     }
 
 
+def empty_bvp_snapshot() -> dict[str, float | None]:
+    return {
+        "known_batters": 0.0,
+        "games": 0.0,
+        "plate_appearances": 0.0,
+        "at_bats": 0.0,
+        "avg": None,
+        "obp": None,
+        "slg": None,
+        "ops": None,
+        "home_runs": 0.0,
+        "strikeout_rate": None,
+        "walk_rate": None,
+    }
+
+
+def bvp_snapshot_from_states(
+    lineup: list[int],
+    pitcher_id: int | None,
+    matchup_states: dict[tuple[int, int], BatterPitcherMatchupState] | None,
+) -> dict[str, float | None]:
+    if not lineup or not pitcher_id or matchup_states is None:
+        return empty_bvp_snapshot()
+
+    states = [matchup_states[(batter_id, pitcher_id)] for batter_id in lineup if (batter_id, pitcher_id) in matchup_states]
+    return aggregate_bvp_states(states)
+
+
+def aggregate_bvp_states(states: list[BatterPitcherMatchupState]) -> dict[str, float | None]:
+    if not states:
+        return empty_bvp_snapshot()
+
+    games: set[int] = set()
+    for state in states:
+        games.update(state.games)
+
+    plate_appearances = sum(state.plate_appearances for state in states)
+    at_bats = sum(state.at_bats for state in states)
+    hits = sum(state.hits for state in states)
+    walks = sum(state.walks for state in states)
+    hit_by_pitch = sum(state.hit_by_pitch for state in states)
+    sac_flies = sum(state.sac_flies for state in states)
+    total_bases = sum(state.total_bases for state in states)
+    strikeouts = sum(state.strikeouts for state in states)
+
+    obp_denominator = at_bats + walks + hit_by_pitch + sac_flies
+    obp = ratio(hits + walks + hit_by_pitch, obp_denominator)
+    slg = ratio(total_bases, at_bats)
+    return {
+        "known_batters": float(len(states)),
+        "games": float(len(games)),
+        "plate_appearances": float(plate_appearances),
+        "at_bats": float(at_bats),
+        "avg": ratio(hits, at_bats),
+        "obp": obp,
+        "slg": slg,
+        "ops": None if obp is None or slg is None else obp + slg,
+        "home_runs": float(sum(state.home_runs for state in states)),
+        "strikeout_rate": ratio(strikeouts, plate_appearances),
+        "walk_rate": ratio(walks, plate_appearances),
+    }
+
+
+def update_batter_pitcher_matchups(
+    matchup_states: dict[tuple[int, int], BatterPitcherMatchupState],
+    feed: dict[str, Any],
+) -> None:
+    game_pk = safe_int(feed.get("gamePk")) or safe_int(feed.get("gameData", {}).get("game", {}).get("pk"))
+    for play in feed.get("liveData", {}).get("plays", {}).get("allPlays", []):
+        about = play.get("about", {})
+        if about and about.get("isComplete") is False:
+            continue
+        matchup = play.get("matchup", {})
+        batter_id = safe_int(matchup.get("batter", {}).get("id"))
+        pitcher_id = safe_int(matchup.get("pitcher", {}).get("id"))
+        if not batter_id or not pitcher_id:
+            continue
+        event_type = play.get("result", {}).get("eventType", "")
+        apply_plate_appearance(
+            matchup_states.setdefault((batter_id, pitcher_id), BatterPitcherMatchupState()),
+            event_type,
+            game_pk,
+        )
+
+
+def apply_plate_appearance(state: BatterPitcherMatchupState, event_type: str, game_pk: int) -> None:
+    if not event_type:
+        return
+
+    non_pa_events = {"pickoff_1b", "pickoff_2b", "pickoff_3b", "caught_stealing_2b", "caught_stealing_3b"}
+    if event_type in non_pa_events:
+        return
+
+    state.games.add(game_pk)
+    state.plate_appearances += 1
+
+    hit_bases = {"single": 1, "double": 2, "triple": 3, "home_run": 4}
+    if event_type in hit_bases:
+        state.at_bats += 1
+        state.hits += 1
+        state.total_bases += hit_bases[event_type]
+        state.doubles += int(event_type == "double")
+        state.triples += int(event_type == "triple")
+        state.home_runs += int(event_type == "home_run")
+        return
+
+    if event_type in {"walk", "intent_walk", "intentional_walk"}:
+        state.walks += 1
+        return
+    if event_type == "hit_by_pitch":
+        state.hit_by_pitch += 1
+        return
+    if event_type == "sac_fly":
+        state.sac_flies += 1
+        return
+    if event_type == "catcher_interf":
+        return
+
+    if event_type in {"strikeout", "strikeout_double_play"}:
+        state.strikeouts += 1
+    if event_type != "sac_bunt":
+        state.at_bats += 1
+
+
 def make_feature_row(
     game: dict[str, Any],
     team_states: dict[int, TeamState],
     player_states: dict[int, PlayerBattingState],
     season: int,
+    batter_pitcher_states: dict[tuple[int, int], BatterPitcherMatchupState] | None = None,
     last_season_team_states: dict[int, TeamState] | None = None,
     lineup_feed: dict[str, Any] | None = None,
     use_current_injuries: bool = False,
@@ -726,6 +892,9 @@ def make_feature_row(
         "away_team_name": away_team.get("name"),
     }
 
+    home_pitcher_id = safe_int(game.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id")) or None
+    away_pitcher_id = safe_int(game.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("id")) or None
+
     for prefix, team_id, is_home in (("home", home_team_id, True), ("away", away_team_id, False)):
         team_state = team_states.setdefault(team_id, TeamState())
         snapshot = team_snapshot(team_state, is_home, game_date)
@@ -745,15 +914,19 @@ def make_feature_row(
         for feature_name, feature_value in lineup_features.items():
             row[f"{prefix}_{feature_name}"] = feature_value
 
-    home_pitcher_id = game.get("teams", {}).get("home", {}).get("probablePitcher", {}).get("id")
-    away_pitcher_id = game.get("teams", {}).get("away", {}).get("probablePitcher", {}).get("id")
+        lineup, _, _ = resolve_lineup(team_state, lineup_feed, side, unavailable_player_ids)
+        opposing_pitcher_id = away_pitcher_id if is_home else home_pitcher_id
+        bvp_features = bvp_snapshot_from_states(lineup, opposing_pitcher_id, batter_pitcher_states)
+        opposing_prefix = "away_pitcher" if is_home else "home_pitcher"
+        for feature_name, feature_value in bvp_features.items():
+            row[f"{prefix}_bvp_vs_{opposing_prefix}_{feature_name}"] = feature_value
+
     for prefix, pitcher_id in (("home_pitcher", home_pitcher_id), ("away_pitcher", away_pitcher_id)):
-        resolved_pitcher_id = safe_int(pitcher_id) or None
-        snapshot = build_pitcher_snapshot(resolved_pitcher_id, season, game_date)
+        snapshot = build_pitcher_snapshot(pitcher_id, season, game_date)
         for feature_name, feature_value in snapshot.items():
             row[f"{prefix}_{feature_name}"] = feature_value
 
-        last_season_snapshot = build_pitcher_snapshot(resolved_pitcher_id, season - 1)
+        last_season_snapshot = build_pitcher_snapshot(pitcher_id, season - 1)
         for feature_name, feature_value in last_season_snapshot.items():
             if feature_name == "days_since_last_start":
                 continue
@@ -773,6 +946,7 @@ def process_completed_games_before(
 def process_completed_games_and_players_before(
     season: int,
     before_date: str | None = None,
+    batter_pitcher_states: dict[tuple[int, int], BatterPitcherMatchupState] | None = None,
 ) -> tuple[dict[int, TeamState], dict[int, PlayerBattingState]]:
     states: dict[int, TeamState] = {}
     player_states: dict[int, PlayerBattingState] = {}
@@ -798,12 +972,35 @@ def process_completed_games_and_players_before(
         update_team_state(away_state, away_record)
         update_lineup_history(home_state, player_states, feed, "home")
         update_lineup_history(away_state, player_states, feed, "away")
+        if batter_pitcher_states is not None:
+            update_batter_pitcher_matchups(batter_pitcher_states, feed)
     return states, player_states
+
+
+def process_bvp_history_before(
+    season: int,
+    before_date: str | None = None,
+    lookback_seasons: int = BVP_HISTORY_SEASONS,
+) -> dict[tuple[int, int], BatterPitcherMatchupState]:
+    matchup_states: dict[tuple[int, int], BatterPitcherMatchupState] = {}
+    start_season = max(1876, season - lookback_seasons)
+    for history_season in range(start_season, season + 1):
+        cutoff = before_date if history_season == season else None
+        for game in fetch_schedule_for_season(history_season):
+            if game.get("status", {}).get("codedGameState") != "F":
+                continue
+            game_date = game.get("officialDate", "")
+            if cutoff is not None and game_date >= cutoff:
+                continue
+            feed = fetch_live_feed(safe_int(game.get("gamePk")))
+            update_batter_pitcher_matchups(matchup_states, feed)
+    return matchup_states
 
 
 def build_training_rows(season: int, before_date: str | None = None) -> list[dict[str, Any]]:
     states: dict[int, TeamState] = {}
     player_states: dict[int, PlayerBattingState] = {}
+    batter_pitcher_states = process_bvp_history_before(season, before_date=f"{season}-01-01")
     last_season_team_states = process_completed_games_before(season - 1)
     rows: list[dict[str, Any]] = []
 
@@ -819,6 +1016,7 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
             states,
             player_states,
             season,
+            batter_pitcher_states=batter_pitcher_states,
             last_season_team_states=last_season_team_states,
             lineup_feed=feed,
         )
@@ -839,13 +1037,19 @@ def build_training_rows(season: int, before_date: str | None = None) -> list[dic
         update_team_state(away_state, away_record)
         update_lineup_history(home_state, player_states, feed, "home")
         update_lineup_history(away_state, player_states, feed, "away")
+        update_batter_pitcher_matchups(batter_pitcher_states, feed)
 
     return rows
 
 
 def build_daily_prediction_rows(target_date: str, season: int | None = None) -> list[dict[str, Any]]:
     resolved_season = season or date.fromisoformat(target_date).year
-    states, player_states = process_completed_games_and_players_before(resolved_season, before_date=target_date)
+    batter_pitcher_states = process_bvp_history_before(resolved_season, before_date=f"{resolved_season}-01-01")
+    states, player_states = process_completed_games_and_players_before(
+        resolved_season,
+        before_date=target_date,
+        batter_pitcher_states=batter_pitcher_states,
+    )
     last_season_team_states = process_completed_games_before(resolved_season - 1)
 
     rows: list[dict[str, Any]] = []
@@ -859,6 +1063,7 @@ def build_daily_prediction_rows(target_date: str, season: int | None = None) -> 
                 states,
                 player_states,
                 resolved_season,
+                batter_pitcher_states=batter_pitcher_states,
                 last_season_team_states=last_season_team_states,
                 lineup_feed=lineup_feed,
                 use_current_injuries=True,

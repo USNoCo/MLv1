@@ -105,6 +105,15 @@ Note: prior-season team columns are still generated in feature files for inspect
 - current injured-list filtering for projected daily lineups
 - projected or confirmed lineup OPS, OBP, SLG, plate appearances, and starts
 
+### Batter vs. pitcher matchup factors
+
+- aggregate lineup history against the opposing probable starter
+- batters in the lineup with prior head-to-head history
+- total head-to-head games, plate appearances, and at-bats
+- head-to-head AVG, OBP, SLG, OPS, home runs, strikeout rate, and walk rate
+
+Matchup history is accumulated from completed play-by-play before each game, plus a configurable prior-season lookback in `mlb_daily.py`. Daily predictions use the same pre-game definition so the model trains and scores on consistent BvP features.
+
 ## Quick Start
 
 ### Setup
