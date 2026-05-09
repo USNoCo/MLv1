@@ -1,93 +1,93 @@
 MLB Daily Prediction Report
-Generated: 2026-05-01 23:28:32
+Generated: 2026-05-07 22:36:21
 Games: 15
 
-1. Milwaukee Brewers at Washington Nationals
-   Start Time: 04:05 PM ET
-   Selection: Milwaukee Brewers
-   Confidence Tier: High
-   Confidence Outlook: Very Likely
-
-2. Cincinnati Reds at Pittsburgh Pirates
-   Start Time: 04:05 PM ET
-   Selection: Pittsburgh Pirates
-   Confidence Tier: High
-   Confidence Outlook: Very Likely
-
-3. San Francisco Giants at Tampa Bay Rays
-   Start Time: 06:10 PM ET
-   Selection: San Francisco Giants
-   Confidence Tier: High
-   Confidence Outlook: Very Likely
-
-4. Chicago White Sox at San Diego Padres
-   Start Time: 08:40 PM ET
+1. St. Louis Cardinals at San Diego Padres
+   Start Time: 09:45 PM ET
    Selection: San Diego Padres
    Confidence Tier: High
    Confidence Outlook: Very Likely
 
-5. Toronto Blue Jays at Minnesota Twins
-   Start Time: 02:10 PM ET
-   Selection: Toronto Blue Jays
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
+2. Houston Astros at Cincinnati Reds
+   Start Time: 06:10 PM ET
+   Selection: Cincinnati Reds
+   Confidence Tier: High
+   Confidence Outlook: Very Likely
 
-6. Houston Astros at Boston Red Sox
-   Start Time: 04:10 PM ET
-   Selection: Boston Red Sox
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-7. Texas Rangers at Detroit Tigers
-   Start Time: 07:15 PM ET
-   Selection: Detroit Tigers
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-8. Arizona Diamondbacks at Chicago Cubs
-   Start Time: 02:20 PM ET
-   Selection: Chicago Cubs
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-9. Kansas City Royals at Seattle Mariners
+3. New York Mets at Arizona Diamondbacks
    Start Time: 09:40 PM ET
+   Selection: New York Mets
+   Confidence Tier: High
+   Confidence Outlook: Very Likely
+
+4. Minnesota Twins at Cleveland Guardians
+   Start Time: 07:15 PM ET
+   Selection: Minnesota Twins
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+5. New York Yankees at Milwaukee Brewers
+   Start Time: 07:40 PM ET
+   Selection: Milwaukee Brewers
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+6. Washington Nationals at Miami Marlins
+   Start Time: 07:10 PM ET
+   Selection: Washington Nationals
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+7. Atlanta Braves at Los Angeles Dodgers
+   Start Time: 10:10 PM ET
+   Selection: Los Angeles Dodgers
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+8. Seattle Mariners at Chicago White Sox
+   Start Time: 07:40 PM ET
    Selection: Seattle Mariners
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-10. Los Angeles Dodgers at St. Louis Cardinals
-   Start Time: 07:15 PM ET
-   Selection: Los Angeles Dodgers
+9. Colorado Rockies at Philadelphia Phillies
+   Start Time: 06:40 PM ET
+   Selection: Philadelphia Phillies
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+10. Detroit Tigers at Kansas City Royals
+   Start Time: 07:40 PM ET
+   Selection: Detroit Tigers
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-11. Baltimore Orioles at New York Yankees
-   Start Time: 01:35 PM ET
-   Selection: Baltimore Orioles
+11. Tampa Bay Rays at Boston Red Sox
+   Start Time: 07:10 PM ET
+   Selection: Boston Red Sox
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-12. Philadelphia Phillies at Miami Marlins
-   Start Time: 04:10 PM ET
-   Selection: Miami Marlins
+12. Chicago Cubs at Texas Rangers
+   Start Time: 08:05 PM ET
+   Selection: Texas Rangers
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
 
-13. Cleveland Guardians at Athletics
-   Start Time: 04:05 PM ET
-   Selection: Cleveland Guardians
+13. Athletics at Baltimore Orioles
+   Start Time: 07:05 PM ET
+   Selection: Athletics
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
 
-14. Atlanta Braves at Colorado Rockies
-   Start Time: 08:10 PM ET
-   Selection: Colorado Rockies
+14. Pittsburgh Pirates at San Francisco Giants
+   Start Time: 10:15 PM ET
+   Selection: San Francisco Giants
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
 
-15. New York Mets at Los Angeles Angels
-   Start Time: 09:38 PM ET
+15. Los Angeles Angels at Toronto Blue Jays
+   Start Time: 07:07 PM ET
    Selection: Los Angeles Angels
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
