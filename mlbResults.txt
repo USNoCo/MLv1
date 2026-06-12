@@ -1,93 +1,100 @@
 MLB Daily Prediction Report
-Generated: 2026-05-07 22:36:21
+Generated: 2026-06-11 22:16:36
 Games: 15
 
-1. St. Louis Cardinals at San Diego Padres
-   Start Time: 09:45 PM ET
-   Selection: San Diego Padres
+1. Texas Rangers at Boston Red Sox
+   Start Time: 07:10 PM ET
+   Selection: Boston Red Sox
    Confidence Tier: High
    Confidence Outlook: Very Likely
 
-2. Houston Astros at Cincinnati Reds
-   Start Time: 06:10 PM ET
-   Selection: Cincinnati Reds
+2. Detroit Tigers at Cleveland Guardians
+   Start Time: 07:10 PM ET
+   Selection: Detroit Tigers
    Confidence Tier: High
    Confidence Outlook: Very Likely
 
-3. New York Mets at Arizona Diamondbacks
-   Start Time: 09:40 PM ET
-   Selection: New York Mets
-   Confidence Tier: High
-   Confidence Outlook: Very Likely
-
-4. Minnesota Twins at Cleveland Guardians
-   Start Time: 07:15 PM ET
-   Selection: Minnesota Twins
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-5. New York Yankees at Milwaukee Brewers
+3. Philadelphia Phillies at Milwaukee Brewers
    Start Time: 07:40 PM ET
    Selection: Milwaukee Brewers
    Confidence Tier: Medium
    Confidence Outlook: Likely
 
-6. Washington Nationals at Miami Marlins
-   Start Time: 07:10 PM ET
+4. St. Louis Cardinals at Minnesota Twins
+   Start Time: 08:10 PM ET
+   Selection: Minnesota Twins
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+5. Atlanta Braves at New York Mets
+   Start Time: 07:15 PM ET
+   Selection: Atlanta Braves
+   Confidence Tier: Medium
+   Confidence Outlook: Likely
+
+6. Seattle Mariners at Washington Nationals
+   Start Time: 06:45 PM ET
    Selection: Washington Nationals
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-7. Atlanta Braves at Los Angeles Dodgers
-   Start Time: 10:10 PM ET
-   Selection: Los Angeles Dodgers
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-8. Seattle Mariners at Chicago White Sox
-   Start Time: 07:40 PM ET
-   Selection: Seattle Mariners
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-9. Colorado Rockies at Philadelphia Phillies
-   Start Time: 06:40 PM ET
-   Selection: Philadelphia Phillies
-   Confidence Tier: Medium
-   Confidence Outlook: Likely
-
-10. Detroit Tigers at Kansas City Royals
-   Start Time: 07:40 PM ET
-   Selection: Detroit Tigers
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-11. Tampa Bay Rays at Boston Red Sox
-   Start Time: 07:10 PM ET
-   Selection: Boston Red Sox
+7. Tampa Bay Rays at Los Angeles Angels
+   Start Time: 09:38 PM ET
+   Selection: Los Angeles Angels
    Confidence Tier: Low
    Confidence Outlook: Lean
 
-12. Chicago Cubs at Texas Rangers
-   Start Time: 08:05 PM ET
-   Selection: Texas Rangers
-   Confidence Tier: Low
-   Confidence Outlook: Toss-Up
-
-13. Athletics at Baltimore Orioles
-   Start Time: 07:05 PM ET
+8. Colorado Rockies at Athletics
+   Start Time: 10:05 PM ET
    Selection: Athletics
    Confidence Tier: Low
-   Confidence Outlook: Toss-Up
+   Confidence Outlook: Lean
 
-14. Pittsburgh Pirates at San Francisco Giants
+9. San Diego Padres at Baltimore Orioles
+   Start Time: 07:05 PM ET
+   Selection: San Diego Padres
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+10. Chicago Cubs at San Francisco Giants
    Start Time: 10:15 PM ET
    Selection: San Francisco Giants
    Confidence Tier: Low
-   Confidence Outlook: Toss-Up
+   Confidence Outlook: Lean
 
-15. Los Angeles Angels at Toronto Blue Jays
-   Start Time: 07:07 PM ET
-   Selection: Los Angeles Angels
+11. New York Yankees at Toronto Blue Jays
+   Start Time: 07:37 PM ET
+   Selection: New York Yankees
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+12. Los Angeles Dodgers at Chicago White Sox
+   Start Time: 07:40 PM ET
+   Selection: Los Angeles Dodgers
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+13. Houston Astros at Kansas City Royals
+   Start Time: 08:10 PM ET
+   Selection: Kansas City Royals
+   Confidence Tier: Low
+   Confidence Outlook: Lean
+
+14. Miami Marlins at Pittsburgh Pirates
+   Start Time: 06:40 PM ET
+   Selection: Pittsburgh Pirates
    Confidence Tier: Low
    Confidence Outlook: Toss-Up
+
+15. Arizona Diamondbacks at Cincinnati Reds
+   Start Time: 07:15 PM ET
+   Selection: Arizona Diamondbacks
+   Confidence Tier: Low
+   Confidence Outlook: Toss-Up
+
+Model Accuracy
+Yesterday: 1/3 (33.3%)
+Past 7 Days: 82/85 (96.5%)
+Past Month: 335/364 (92.0%)
+This Season: 572/700 (81.7%)
+All Time: 572/700 (81.7%)

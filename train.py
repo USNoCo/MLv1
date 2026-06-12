@@ -1,4 +1,6 @@
 import argparse
+import hashlib
+from datetime import datetime
 from pathlib import Path
 
 import joblib
@@ -13,6 +15,22 @@ from sklearn.pipeline import Pipeline
 DEFAULT_DATASET_PATH = Path("data/mlb_daily_training_2025.csv")
 ARTIFACTS_DIR = Path("artifacts")
 MODEL_PATH = ARTIFACTS_DIR / "mlb_game_winner_model.joblib"
+SIGNATURE_VERSION = 1
+TRAINING_SIGNATURE_FILES = (
+    Path("train.py"),
+    Path("run_mlb_pipeline.py"),
+    Path("mlb_daily.py"),
+    Path("build_dataset.py"),
+    Path("build_daily_features.py"),
+    Path("requirements.txt"),
+)
+CLASSIFIER_PARAMS = {
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "max_iter": 300,
+    "min_samples_leaf": 20,
+    "random_state": 42,
+}
 METADATA_COLUMNS = {
     "official_date",
     "game_datetime",
@@ -50,13 +68,7 @@ def build_pipeline() -> Pipeline:
             ("imputer", SimpleImputer(strategy="median")),
             (
                 "model",
-                HistGradientBoostingClassifier(
-                    learning_rate=0.05,
-                    max_depth=6,
-                    max_iter=300,
-                    min_samples_leaf=20,
-                    random_state=42,
-                ),
+                HistGradientBoostingClassifier(**CLASSIFIER_PARAMS),
             ),
         ]
     )
@@ -76,13 +88,67 @@ def load_dataset(dataset_path: Path) -> tuple[pd.DataFrame, list[str]]:
     return df, feature_columns
 
 
-def save_model(pipeline: Pipeline, feature_columns: list[str], dataset_path: Path) -> None:
+def file_sha256(path: Path) -> str | None:
+    if not path.exists():
+        return None
+    return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def build_training_signature(feature_columns: list[str]) -> dict[str, object]:
+    return {
+        "version": SIGNATURE_VERSION,
+        "pipeline": {
+            "imputer": {"strategy": "median"},
+            "model": {
+                "class": "sklearn.ensemble.HistGradientBoostingClassifier",
+                "params": CLASSIFIER_PARAMS,
+            },
+        },
+        "feature_columns": feature_columns,
+        "metadata_columns": sorted(METADATA_COLUMNS),
+        "excluded_feature_prefixes": list(EXCLUDED_FEATURE_PREFIXES),
+        "source_hashes": {str(path): file_sha256(path) for path in TRAINING_SIGNATURE_FILES},
+    }
+
+
+def training_signature_matches(saved: dict[str, object], feature_columns: list[str]) -> bool:
+    return saved.get("training_signature") == build_training_signature(feature_columns)
+
+
+def latest_official_date(df: pd.DataFrame) -> str | None:
+    if "official_date" not in df.columns or df.empty:
+        return None
+    dates = df["official_date"].dropna().astype(str)
+    if dates.empty:
+        return None
+    return str(dates.max())
+
+
+def load_saved_model() -> dict[str, object] | None:
+    if not MODEL_PATH.exists():
+        return None
+    return joblib.load(MODEL_PATH)
+
+
+def save_model(
+    pipeline: Pipeline,
+    feature_columns: list[str],
+    dataset_path: Path,
+    *,
+    training_signature: dict[str, object] | None = None,
+    latest_training_date: str | None = None,
+    update_type: str = "full",
+) -> None:
     ARTIFACTS_DIR.mkdir(exist_ok=True)
     joblib.dump(
         {
             "model": pipeline,
             "feature_names": feature_columns,
             "dataset_path": str(dataset_path),
+            "training_signature": training_signature or build_training_signature(feature_columns),
+            "latest_training_date": latest_training_date,
+            "trained_at": datetime.now().isoformat(timespec="seconds"),
+            "update_type": update_type,
         },
         MODEL_PATH,
     )
@@ -101,7 +167,12 @@ def main() -> None:
     if args.fit_all:
         pipeline.fit(X, y)
         print(f"Fitted model on all {len(df)} rows.")
-        save_model(pipeline, feature_columns, args.dataset)
+        save_model(
+            pipeline,
+            feature_columns,
+            args.dataset,
+            latest_training_date=latest_official_date(df),
+        )
         return
 
     if "official_date" in df.columns:
@@ -140,7 +211,12 @@ def main() -> None:
     print("\nClassification report:")
     print(classification_report(y_test, predictions, target_names=["away_win", "home_win"]))
 
-    save_model(pipeline, feature_columns, args.dataset)
+    save_model(
+        pipeline,
+        feature_columns,
+        args.dataset,
+        latest_training_date=latest_official_date(train_df if "official_date" in df.columns else df),
+    )
 
 
 if __name__ == "__main__":

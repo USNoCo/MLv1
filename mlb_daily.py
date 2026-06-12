@@ -85,7 +85,7 @@ def fetch_json(
     return data
 
 
-def fetch_schedule_for_season(season: int) -> list[dict[str, Any]]:
+def fetch_schedule_for_season(season: int, use_cache: bool = True) -> list[dict[str, Any]]:
     data = fetch_json(
         f"{BASE_URL}/schedule",
         {
@@ -96,6 +96,7 @@ def fetch_schedule_for_season(season: int) -> list[dict[str, Any]]:
         },
         "schedule",
         f"season-{season}",
+        use_cache=use_cache,
     )
     games: list[dict[str, Any]] = []
     for date_block in data.get("dates", []):
@@ -938,8 +939,9 @@ def make_feature_row(
 def process_completed_games_before(
     season: int,
     before_date: str | None = None,
+    use_cache: bool = True,
 ) -> dict[int, TeamState]:
-    states, _ = process_completed_games_and_players_before(season, before_date=before_date)
+    states, _ = process_completed_games_and_players_before(season, before_date=before_date, use_cache=use_cache)
     return states
 
 
@@ -947,17 +949,18 @@ def process_completed_games_and_players_before(
     season: int,
     before_date: str | None = None,
     batter_pitcher_states: dict[tuple[int, int], BatterPitcherMatchupState] | None = None,
+    use_cache: bool = True,
 ) -> tuple[dict[int, TeamState], dict[int, PlayerBattingState]]:
     states: dict[int, TeamState] = {}
     player_states: dict[int, PlayerBattingState] = {}
-    for game in fetch_schedule_for_season(season):
+    for game in fetch_schedule_for_season(season, use_cache=use_cache):
         if game.get("status", {}).get("codedGameState") != "F":
             continue
         game_date = game.get("officialDate", "")
         if before_date is not None and game_date >= before_date:
             continue
 
-        feed = fetch_live_feed(safe_int(game.get("gamePk")))
+        feed = fetch_live_feed(safe_int(game.get("gamePk")), use_cache=use_cache)
         home_runs, away_runs = extract_game_outcome(feed)
         home_record = extract_team_record(feed, "home")
         away_record = extract_team_record(feed, "away")
@@ -981,36 +984,37 @@ def process_bvp_history_before(
     season: int,
     before_date: str | None = None,
     lookback_seasons: int = BVP_HISTORY_SEASONS,
+    use_cache: bool = True,
 ) -> dict[tuple[int, int], BatterPitcherMatchupState]:
     matchup_states: dict[tuple[int, int], BatterPitcherMatchupState] = {}
     start_season = max(1876, season - lookback_seasons)
     for history_season in range(start_season, season + 1):
         cutoff = before_date if history_season == season else None
-        for game in fetch_schedule_for_season(history_season):
+        for game in fetch_schedule_for_season(history_season, use_cache=use_cache):
             if game.get("status", {}).get("codedGameState") != "F":
                 continue
             game_date = game.get("officialDate", "")
             if cutoff is not None and game_date >= cutoff:
                 continue
-            feed = fetch_live_feed(safe_int(game.get("gamePk")))
+            feed = fetch_live_feed(safe_int(game.get("gamePk")), use_cache=use_cache)
             update_batter_pitcher_matchups(matchup_states, feed)
     return matchup_states
 
 
-def build_training_rows(season: int, before_date: str | None = None) -> list[dict[str, Any]]:
+def build_training_rows(season: int, before_date: str | None = None, use_cache: bool = True) -> list[dict[str, Any]]:
     states: dict[int, TeamState] = {}
     player_states: dict[int, PlayerBattingState] = {}
     batter_pitcher_states = process_bvp_history_before(season, before_date=f"{season}-01-01")
     last_season_team_states = process_completed_games_before(season - 1)
     rows: list[dict[str, Any]] = []
 
-    for game in fetch_schedule_for_season(season):
+    for game in fetch_schedule_for_season(season, use_cache=use_cache):
         if game.get("status", {}).get("codedGameState") != "F":
             continue
         if before_date is not None and game.get("officialDate", "") >= before_date:
             continue
 
-        feed = fetch_live_feed(safe_int(game.get("gamePk")))
+        feed = fetch_live_feed(safe_int(game.get("gamePk")), use_cache=use_cache)
         row = make_feature_row(
             game,
             states,
@@ -1049,6 +1053,7 @@ def build_daily_prediction_rows(target_date: str, season: int | None = None) -> 
         resolved_season,
         before_date=target_date,
         batter_pitcher_states=batter_pitcher_states,
+        use_cache=False,
     )
     last_season_team_states = process_completed_games_before(resolved_season - 1)
 

@@ -133,9 +133,14 @@ python run_mlb_pipeline.py --date YYYY-MM-DD
 That command will:
 
 - rebuild historical training data through the chosen date
-- retrain the production model on all available past games
+- retrain the production model when training code, model settings, or feature columns change
+- otherwise reuse the saved model, or warm-start it on new labeled games from the last 3 days when available
 - generate feature rows for not-yet-started games on that date
 - write a ranked prediction report to `mlbResults.txt`
+
+The saved model artifact includes a training signature so the pipeline can tell when a full retrain is required. With the current `HistGradientBoostingClassifier`, the last-3-day update is implemented as a warm-start update rather than true online `partial_fit`.
+
+For the active season, the pipeline refreshes the MLB schedule and final game feeds when building training rows so stale pregame caches do not prevent recently completed games from being included.
 
 ## Step-by-Step Workflow
 
@@ -185,6 +190,7 @@ The final report is ranked by strongest confidence first and includes:
 - selection
 - confidence tier
 - confidence outlook
+- model accuracy for yesterday, the past 7 days, the past month, this season, and all saved prediction history
 - generated timestamp
 - total number of games in the report
 
@@ -196,6 +202,13 @@ Example report entry:
    Selection: Philadelphia Phillies
    Confidence Tier: High
    Confidence Outlook: Very Likely
+
+Model Accuracy
+Yesterday: 6/11 (54.5%)
+Past 7 Days: 45/65 (69.2%)
+Past Month: 175/282 (62.1%)
+This Season: 175/282 (62.1%)
+All Time: 175/282 (62.1%)
 ```
 
 ## Current Limitations
